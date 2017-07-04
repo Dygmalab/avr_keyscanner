@@ -10,7 +10,7 @@ debounce_t db[] = {
     {0x00, 0x00, 0xFF},
     {0x00, 0x00, 0xFF},
     {0x00, 0x00, 0xFF},
-    {0x00, 0x00, 0xFF}
+    {0x00, 0x00, 0xFF},
 };
 
 // do_scan gets set any time we should actually do a scan
@@ -41,23 +41,23 @@ void keyscanner_init(void) {
 }
 
 
-void keyscanner_main(void) {
+bool keyscanner_main(void) {
     uint8_t debounced_changes = 0;
     uint8_t pin_data;
 
     if (__builtin_expect(do_scan == 0, 1)) {
-        return;
+        return false;
     }
 
     // For each enabled row...
-    for (uint8_t row = 0; row < ROW_COUNT; ++row) {
+    for (uint8_t row = 0; row < ROW_COUNT; row++) {
         // Reset all of our row pins, then
         // set the one we want to read as low
         LOW(PORT_ROWS, row);
-        /* We need a no-op for synchronization. So says the datasheet
-         * in Section 10.2.5 */
+        // We need a no-op for synchronization. So says the datasheet
+        // in Section 10.2.5 
         asm("nop");
-        pin_data = PIN_COLS;
+        pin_data = PIN_COLS & COL_PINMASK;
         HIGH(PORT_ROWS,row);
         // Debounce key state
         debounced_changes += debounce((pin_data) , db + row);
@@ -72,10 +72,8 @@ void keyscanner_main(void) {
         // cause us to do reads too fast and mis-debounce
         // some secondary key while we successfully debounce a
         // first key.
-        do_scan = 0;
-        return;
+        return true;
     }
-
     // Snapshot the keystate to add to the ring buffer
     // Run this with interrupts off to make sure that
     // when we read from the ringbuffer, we always get 
@@ -86,6 +84,7 @@ void keyscanner_main(void) {
         ringbuf_append( db[2].state ^ 0xff );
         ringbuf_append( db[3].state ^ 0xff );
     });
+    return true;
 }
 
 // initialize timer, interrupt and variable

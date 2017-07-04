@@ -28,14 +28,15 @@ CLOCK      ?= 8000000
 
 # Add something like this to Makefile.local if you haven't yet set up ~/.avrduderc with a default programmer.
 # PROGRAMMER = -c usbtiny -P usb
-# PROGRAMMER = -c dragon_isp -P usb
+PROGRAMMER = -c dragon_isp -P usb
 
 # Add more objects for each .c file here
-OBJECTS    = main.o twi-slave.o ringbuf.o wire-protocol.o keyscanner.o led-spiout.o
+OBJECTS    = main.o twi-slave.o ringbuf.o wire-protocol.o keyscanner.o led-spiout.o  light_ws2812.o
 
 # For computing fuse byte values for other devices and options see
 # the fuse bit calculator at http://www.engbedded.com/fusecalc/
 FUSES      = -U lfuse:w:0xee:m -U hfuse:w:0xdd:m -U efuse:w:0xfe:m
+FUSESDEBUG = -U lfuse:w:0xee:m -U hfuse:w:0x9d:m -U efuse:w:0xfe:m 
 
 AVRDUDE_PATH ?= avrdude
 GCC_PATH ?= avr-gcc
@@ -43,14 +44,13 @@ GCC_PATH ?= avr-gcc
 
 # Optimize for many things (including perf)
 OPTIMIZATION = -O2
+#DEBUG = -ggdb
 
 # Optimize, but focus on keeping code size small
 #OPTIMIZATION = -Os
 
-
-
 AVRDUDE = $(AVRDUDE_PATH) $(PROGRAMMER) -p $(DEVICE)
-COMPILE = $(GCC_PATH) -Wall -Wextra $(OPTIMIZATION) -std=gnu11 -flto -mmcu=$(DEVICE) -DF_CPU=$(CLOCK)
+COMPILE = $(GCC_PATH) -Wall -Wextra $(OPTIMIZATION) $(DEBUG) -std=gnu11 -flto -mmcu=$(DEVICE) -DF_CPU=$(CLOCK)
 
 # symbolic targets:
 all:	main.hex
@@ -69,10 +69,13 @@ all:	main.hex
 	$(COMPILE) -S $< -o $@
 
 flash:	all
-	$(AVRDUDE) -B 2 -U flash:w:main.hex:i
+	$(AVRDUDE) -B 1 -U flash:w:main.hex:i
 
 fuse:
 	$(AVRDUDE) -B 100 $(FUSES)
+
+fuse-debug:
+	$(AVRDUDE) -B 100 $(FUSESDEBUG)
 
 # Xcode uses the Makefile targets "", "clean" and "install"
 install: flash fuse

@@ -14,8 +14,9 @@ void twi_init(void) {
     TWI_Tx_Data_Callback = twi_data_requested;
 
     // TODO: set TWI_Tx_Data_Callback and TWI_Rx_Data_Callback
-    TWI_Slave_Initialise(TWI_BASE_ADDRESS | AD01());
+    TWI_Slave_Initialise(TWI_BASE_ADDRESS);
     sei();
+    DDRC |= _BV(1); // PC1 is pin 24
 }
 
 static uint8_t twi_command = TWI_CMD_NONE;
@@ -39,7 +40,7 @@ void twi_data_received(uint8_t *buf, uint8_t bufsiz) {
             twi_command = TWI_CMD_KEYSCAN_INTERVAL;
         }
         break;
-
+/*
     case TWI_CMD_LED_SPI_FREQUENCY:
         if (bufsiz == 2 ) {
             led_spi_frequency = buf[1];
@@ -48,7 +49,7 @@ void twi_data_received(uint8_t *buf, uint8_t bufsiz) {
             twi_command = TWI_CMD_LED_SPI_FREQUENCY;
         }
         break;
-
+    */
 
     case TWI_CMD_LED_SET_ALL_TO:
         if (bufsiz == 4 ) {
@@ -65,9 +66,11 @@ void twi_data_received(uint8_t *buf, uint8_t bufsiz) {
     case TWI_CMD_VERSION:
         twi_command = TWI_CMD_VERSION;
         break;
+        /*
     case TWI_CMD_LED_GLOBAL_BRIGHTNESS:
 	led_set_global_brightness(buf[1]);
 	break;
+    */
     }
 }
 
@@ -78,6 +81,7 @@ void twi_data_requested(uint8_t *buf, uint8_t *bufsiz) {
         switch (twi_command) {
         case TWI_CMD_NONE:
             // Keyscanner Status Register
+            PORTC |= _BV(1);
             if (ringbuf_empty()) {
                 // Nothing in the ring buffer is the same thing as all keys released
                 // Really, we _should_ be able to return a single byte here, but
@@ -93,6 +97,7 @@ void twi_data_requested(uint8_t *buf, uint8_t *bufsiz) {
                 buf[4] = ringbuf_pop();
                 *bufsiz=5;
             }
+            PORTC &= ~ _BV(1);
             break;
         case TWI_CMD_VERSION:
             buf[0] = DEVICE_VERSION;

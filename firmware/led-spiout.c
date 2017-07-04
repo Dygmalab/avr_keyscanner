@@ -18,8 +18,7 @@
  * happen mid-LED). The LED refresh rate is high enough that this
  * shouldn't matter.
  */
-
-
+/*
 typedef union {
     uint8_t each[NUM_LEDS][LED_DATA_SIZE];
     uint8_t whole[LED_BUFSZ];
@@ -27,7 +26,13 @@ typedef union {
 } led_buffer_t;
 
 static volatile led_buffer_t led_buffer;
+*/
 
+#include "light_ws2812.h"
+
+struct cRGB led_buffer[NUM_LEDS];
+
+/*
 static volatile enum {
     START_FRAME,
     DATA,
@@ -36,50 +41,53 @@ static volatile enum {
 
 static volatile uint8_t global_brightness = 0xFF;
 
-static volatile uint8_t index; /* next byte to transmit */
 static volatile uint8_t subpixel = 0;
+*/
+static volatile uint8_t index; 
 
 /* Update the transmit buffer with LED_BUFSZ bytes of new data */
+
 void led_update_bank(uint8_t *buf, const uint8_t bank) {
-    /* Double-buffering here is wasteful, but there isn't enough RAM on
-       ATTiny48 to single buffer 32 LEDs and have everything else work
-       unmodified. However there's enough RAM on ATTiny88 to double
-       buffer 32 LEDs! And double buffering is simpler, less likely to
-       flicker. */
+    // Double-buffering here is wasteful, but there isn't enough RAM on
+     //  ATTiny48 to single buffer 32 LEDs and have everything else work
+      // unmodified. However there's enough RAM on ATTiny88 to double
+       //buffer 32 LEDs! And double buffering is simpler, less likely to
+       //flicker. 
 
     DISABLE_INTERRUPTS({
-        memcpy((uint8_t *)led_buffer.bank[bank], buf, LED_BANK_SIZE);
+        memcpy(&led_buffer[bank*NUM_LEDS_PER_BANK], buf, LED_BANK_SIZE);
     });
 }
 
 void led_set_one_to(uint8_t led, uint8_t *buf) {
     DISABLE_INTERRUPTS({
-        memcpy((uint8_t *)led_buffer.each[led], buf, LED_DATA_SIZE);
+        memcpy(&led_buffer[led], buf, LED_DATA_SIZE);
     });
 
 }
 
+/*
 void led_set_global_brightness(uint8_t brightness) {
 	if (brightness > 31) {
 		return;
 	}
 	global_brightness = 0xE0 + brightness;
 }
+*/
 
 void led_set_all_to( uint8_t *buf) {
     DISABLE_INTERRUPTS({
-        for(int8_t led=31; led>=0; led--) {
-            memcpy((uint8_t *)led_buffer.each[led], buf, LED_DATA_SIZE);
+        for(int8_t led=0; led<=NUM_LEDS; led++) {
+            memcpy(&led_buffer[led], buf, LED_DATA_SIZE);
         }
     });
 
 }
-
+/*
 void led_set_spi_frequency(uint8_t frequency) {
-    /* Enable SPI master, MSB first
-     * fOSC/16 speed (512KHz), the default
-      Measured at about 300 Hz of LED updates
-     */
+    // Enable SPI master, MSB first
+    // fOSC/16 speed (512KHz), the default
+    //  Measured at about 300 Hz of LED updates
     switch(frequency) {
     case LED_SPI_OFF:
         SPCR = 0x00;
@@ -122,28 +130,36 @@ void led_set_spi_frequency(uint8_t frequency) {
         break;
     }
 }
-
+*/
 
 void led_init() {
 
     // Make sure all our LEDs start off dark
-    uint8_t off[] = { 0x00,0x00,0x00};
+    uint8_t off[] = { 0x20,0x40,0x00};
     led_set_all_to(&off[0]);
 
     /* Set MOSI, SCK, SS all to outputs */
+    /*
     DDRB = _BV(5)|_BV(3)|_BV(2);
     PORTB &= ~(_BV(5)|_BV(3)|_BV(2));
 
     led_set_spi_frequency(led_spi_frequency);
+    */
 
     /* Start transmitting the first byte of the start frame */
-    led_phase = START_FRAME;
-    SPDR = 0x0;
+    //led_phase = START_FRAME;
+    //SPDR = 0x0;
     index = 1;
-    subpixel = 0;
+    //subpixel = 0;
+
+}
+
+void led_update() {
+    ws2812_setleds(led_buffer,NUM_LEDS);
 }
 
 /* Each time a byte finishes transmitting, queue the next one */
+/*
 ISR(SPI_STC_vect) {
     switch(led_phase) {
     case START_FRAME:
@@ -175,10 +191,11 @@ ISR(SPI_STC_vect) {
 	// After that, we need at num_leds/2 more bits of 0 
 	// For up to 64 LEDs, that means 64 bits of 0
         SPDR = 0x00;
-        if(++index == 8) { /* NB: increase this number if ever >64 LEDs */
+        if(++index == 8) { // NB: increase this number if ever >64 LEDs 
             led_phase = START_FRAME;
             index = 0;
         }
         break;
     }
 }
+*/
