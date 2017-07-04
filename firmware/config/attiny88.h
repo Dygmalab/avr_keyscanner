@@ -10,14 +10,14 @@
  */
 
 // ROWS: Signal port (rows)
-#define PORT_ROWS PORTB
-#define DDR_ROWS DDRB
-#define PIN_ROWS PINB
+#define PORT_ROWS PORTC
+#define DDR_ROWS DDRC
+#define PIN_ROWS PINC
 
-#define ROW_PINMASK  (_BV(0)|_BV(1)|_BV(2) |_BV(3))
+#define ROW_PINMASK  (_BV(0)|_BV(1)|_BV(2) |_BV(3) | _BV(7))
 //#define ROW_PINMASK (_BV(0)|_BV(1)|_BV(2)|_BV(3)|_BV(4)|_BV(5)|_BV(6))
 
-#define ROW_COUNT 4
+#define ROW_COUNT 5
 
 // COLS: Scanning port (cols)
 #define PORT_COLS PORTD
@@ -29,4 +29,4 @@
 #define COL_COUNT 8
 
 // AD01: lower two bits of device address
-//#define AD01() ((PINB & _BV(0)) |( PINB & _BV(1)))
+#define AD01() ((PINB & _BV(0)) |( PINB & _BV(1)))

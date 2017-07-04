@@ -14,7 +14,7 @@ void twi_init(void) {
     TWI_Tx_Data_Callback = twi_data_requested;
 
     // TODO: set TWI_Tx_Data_Callback and TWI_Rx_Data_Callback
-    TWI_Slave_Initialise(TWI_BASE_ADDRESS);
+    TWI_Slave_Initialise(TWI_BASE_ADDRESS | AD01());
     sei();
     DDRC |= _BV(1); // PC1 is pin 24
 }
@@ -81,7 +81,6 @@ void twi_data_requested(uint8_t *buf, uint8_t *bufsiz) {
         switch (twi_command) {
         case TWI_CMD_NONE:
             // Keyscanner Status Register
-            PORTC |= _BV(1);
             if (ringbuf_empty()) {
                 // Nothing in the ring buffer is the same thing as all keys released
                 // Really, we _should_ be able to return a single byte here, but
@@ -97,7 +96,6 @@ void twi_data_requested(uint8_t *buf, uint8_t *bufsiz) {
                 buf[4] = ringbuf_pop();
                 *bufsiz=5;
             }
-            PORTC &= ~ _BV(1);
             break;
         case TWI_CMD_VERSION:
             buf[0] = DEVICE_VERSION;
