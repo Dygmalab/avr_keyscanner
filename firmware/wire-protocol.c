@@ -94,7 +94,8 @@ void twi_data_requested(uint8_t *buf, uint8_t *bufsiz) {
                 buf[2] = ringbuf_pop();
                 buf[3] = ringbuf_pop();
                 buf[4] = ringbuf_pop();
-                *bufsiz=5;
+                buf[5] = ringbuf_pop();
+                *bufsiz=6;
             }
             break;
         case TWI_CMD_VERSION:

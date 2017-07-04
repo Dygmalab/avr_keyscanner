@@ -2,8 +2,8 @@
 
 #include <stdint.h>
 #include "wire-protocol-constants.h"
-#define TWI_BASE_ADDRESS     0x5B
-//#define TWI_BASE_ADDRESS     0x59
+//#define TWI_BASE_ADDRESS     0x5B
+#define TWI_BASE_ADDRESS     0x58
 
 typedef union {
     struct {

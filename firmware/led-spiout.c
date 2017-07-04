@@ -155,7 +155,8 @@ void led_init() {
 }
 
 void led_update() {
-    ws2812_setleds(led_buffer,NUM_LEDS);
+    ws2812_setleds(led_buffer,1); //NUM_LEDS);
+    //ws2812_setleds(led_buffer,NUM_LEDS);
 }
 
 /* Each time a byte finishes transmitting, queue the next one */

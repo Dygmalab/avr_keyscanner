@@ -11,6 +11,7 @@ debounce_t db[] = {
     {0x00, 0x00, 0xFF},
     {0x00, 0x00, 0xFF},
     {0x00, 0x00, 0xFF},
+    {0x00, 0x00, 0xFF},
 };
 
 // do_scan gets set any time we should actually do a scan
@@ -34,8 +35,8 @@ void keyscanner_init(void) {
     // PC7 is on the same port as the four row pins.
     // We refer to it here as PORTC because
     // we're not using it as part of the keyscanner
-    HIGH(PORTC,7);
-    SET_OUTPUT(DDRC,7);
+//    HIGH(PORTC,7);
+//    SET_OUTPUT(DDRC,7);
 
     keyscanner_timer1_init();
 }
@@ -53,12 +54,18 @@ bool keyscanner_main(void) {
     for (uint8_t row = 0; row < ROW_COUNT; row++) {
         // Reset all of our row pins, then
         // set the one we want to read as low
-        LOW(PORT_ROWS, row);
+        if(row == 4)
+            LOW(PORT_ROWS, 7);
+        else
+            LOW(PORT_ROWS, row);
         // We need a no-op for synchronization. So says the datasheet
         // in Section 10.2.5 
         asm("nop");
         pin_data = PIN_COLS & COL_PINMASK;
-        HIGH(PORT_ROWS,row);
+        if(row == 4)
+            HIGH(PORT_ROWS,7);
+        else
+            HIGH(PORT_ROWS,row);
         // Debounce key state
         debounced_changes += debounce((pin_data) , db + row);
     }
@@ -83,6 +90,7 @@ bool keyscanner_main(void) {
         ringbuf_append( db[1].state ^ 0xff );
         ringbuf_append( db[2].state ^ 0xff );
         ringbuf_append( db[3].state ^ 0xff );
+        ringbuf_append( db[4].state ^ 0xff );
     });
     return true;
 }
