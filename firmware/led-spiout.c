@@ -135,7 +135,7 @@ void led_set_spi_frequency(uint8_t frequency) {
 void led_init() {
 
     // Make sure all our LEDs start off dark
-    uint8_t off[] = { 0x20,0x40,0x00};
+    uint8_t off[] = { 0x00,0x00,0x00};
     led_set_all_to(&off[0]);
 
     /* Set MOSI, SCK, SS all to outputs */
