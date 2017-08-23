@@ -27,12 +27,14 @@ FUSES      = -U lfuse:w:0xee:m -U hfuse:w:0xdd:m -U efuse:w:0xfe:m
 
 AVRDUDE_PATH ?= avrdude
 GCC_PATH ?= avr-gcc
-PROGRAMMER ?= -c usbtiny
+PROGRAMMER ?= -c dragon_isp
 
 AVRDUDE = $(AVRDUDE_PATH) $(PROGRAMMER) -p $(DEVICE) -v
 
 flash:	all
-	$(AVRDUDE) -B 2 -U flash:w:out/attiny88_factory.hex:i
+	#$(AVRDUDE) -B 100 -U flash:w:out/attiny88_factory.hex:i
+	echo $(AVRDUDE) -B 1 -U flash:w:out/attiny88_keyscanner.hex:i
+	$(AVRDUDE) -B 1 -U flash:w:out/attiny88_keyscanner.hex:i
 
 fuse:
 	$(AVRDUDE) -B 100 $(FUSES)
